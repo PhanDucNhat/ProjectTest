@@ -1,0 +1,129 @@
+//table Menu
+CREATE TABLE Menu (
+    MenuID NUMBER PRIMARY KEY,
+    MenuName VARCHAR2(255) NOT NULL,
+    IsActive NUMBER(1) DEFAULT 1,
+    ControllerName VARCHAR2(255),
+    ActionName VARCHAR2(255),
+    Levels NUMBER,
+    ParentID NUMBER,
+    Link VARCHAR2(255),
+    MenuOrder NUMBER,
+    Position NUMBER
+);
+CREATE SEQUENCE MenuID_Seq
+    START WITH 1
+    INCREMENT BY 1
+    NOCACHE;
+CREATE OR REPLACE TRIGGER MenuID_Trigger
+BEFORE INSERT ON Menu
+FOR EACH ROW
+BEGIN
+    IF :new.MenuID IS NULL THEN
+        SELECT MenuID_Seq.NEXTVAL INTO :new.MenuID FROM dual;
+    END IF;
+END;
+
+//table AdminMenu
+CREATE TABLE AdminMenu (
+    AdminMenuID NUMBER(10) PRIMARY KEY,
+    ItemName NVARCHAR2(50),
+    ItemLevel NUMBER(10),
+    ParentLevel NUMBER(10),
+    ItemOrder NUMBER(10),
+    IsActive NUMBER(1),
+    ItemTarget NVARCHAR2(20),
+    AreaName NVARCHAR2(20),
+    ControllerName NVARCHAR2(20),
+    ActionName NVARCHAR2(20),
+    Icon NVARCHAR2(50),
+    IdName NVARCHAR2(50)
+);
+
+//table Users
+CREATE TABLE Users (
+    UserID NUMBER PRIMARY KEY,
+    Username VARCHAR2(50),
+    Password VARCHAR2(50),
+    FullName VARCHAR2(100),
+    Role VARCHAR2(50),
+    Email VARCHAR2(100)
+);
+CREATE SEQUENCE user_seq
+START WITH 1
+INCREMENT BY 1;
+CREATE OR REPLACE TRIGGER user_id_trigger
+BEFORE INSERT ON users
+FOR EACH ROW
+BEGIN
+    IF :NEW.UserID IS NULL THEN
+        SELECT user_seq.NEXTVAL INTO :NEW.UserID FROM dual;
+    END IF;
+END;
+
+//table Subjects
+CREATE TABLE Subjects (
+  SubjectID NUMBER PRIMARY KEY,
+  SubjectName VARCHAR2(255) NOT NULL,
+  Description VARCHAR2(1000),
+  MenuID NUMBER,
+  FOREIGN KEY (MenuID) REFERENCES Menu(MenuID)
+);
+CREATE SEQUENCE seq_Subjectid
+  START WITH 1
+  INCREMENT BY 1
+  NOCACHE
+  NOCYCLE;
+CREATE OR REPLACE TRIGGER trg_subjectid
+BEFORE INSERT ON Subjects
+FOR EACH ROW
+BEGIN
+  :NEW.SubjectID := seq_Subjectid.NEXTVAL;
+END;
+
+//table Questions
+CREATE TABLE Questions (
+    QuestionID NUMBER PRIMARY KEY,
+    ExamID NUMBER,
+    Chapter NUMBER,
+    QuestionText VARCHAR2(500) NOT NULL,
+    OptionA VARCHAR2(100),
+    OptionB VARCHAR2(100),
+    OptionC VARCHAR2(100),
+    OptionD VARCHAR2(100),
+    CorrectOption CHAR(1) CHECK (CorrectOption IN ('A', 'B', 'C', 'D')),
+    FOREIGN KEY (ExamID) REFERENCES Exams(ExamID)
+);
+CREATE SEQUENCE seq_questionid
+  START WITH 1
+  INCREMENT BY 1
+  NOCACHE;
+CREATE OR REPLACE TRIGGER trg_questionid
+BEFORE INSERT ON Questions
+FOR EACH ROW
+BEGIN
+  :NEW.QuestionID := seq_questionid.NEXTVAL;
+END;
+
+//table Exams
+CREATE TABLE Exams (
+    ExamID NUMBER PRIMARY KEY,
+    ExamName VARCHAR2(100) NOT NULL,
+    CreatedBy NUMBER,
+    SubjectID NUMBER,
+    TimeExam NUMBER,
+    Quantitys NUMBER,
+    Content VARCHAR2(1000),
+    CreateDate TIMESTAMP,
+    FOREIGN KEY (CreatedBy) REFERENCES Users(UserID),
+    FOREIGN KEY (SubjectID) REFERENCES Subjects(SubjectID)
+);
+CREATE SEQUENCE ExamID_seq
+START WITH 1
+INCREMENT BY 1;
+CREATE OR REPLACE TRIGGER trg_Exams_BI
+BEFORE INSERT ON Exams
+FOR EACH ROW
+BEGIN
+    :NEW.ExamID := ExamID_seq.NEXTVAL;
+END;
